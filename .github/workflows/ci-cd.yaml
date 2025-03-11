@@ -71,8 +71,8 @@ jobs:
       - name: Apply Kubernetes Configurations
         run: |
           kubectl apply -f kubernetes/postgres-deployment.yml
-          kubectl apply -f kubernetes/user-service-deployment.yml
-          kubectl apply -f kubernetes/order-service-deployment.yml
+          kubectl apply -f kubernetes/catalog-service-deployment.yml
+          kubectl apply -f kubernetes/cart-service-deployment.yml
           kubectl apply -f kubernetes/frontend-deployment.yml
 
       # Step 5: Verify Deployment (Check Pod Status)
