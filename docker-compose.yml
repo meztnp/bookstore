@@ -15,7 +15,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
  
   catalog:
-    build: ./catalog
+    image: teufelz/bookstore-catalog
     container_name: catalog-service
     restart: always
     environment:
@@ -26,7 +26,7 @@ services:
       - postgres
  
   cart:
-    build: ./cart
+    image: teufelz/bookstore-cart
     container_name: cart-service
     restart: always
     environment:
@@ -37,7 +37,7 @@ services:
       - postgres
  
   frontend:
-    build: ./frontend
+    image: teufelz/bookstore-frontend
     container_name: frontend-app
     restart: always
     ports:
