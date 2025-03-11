@@ -8,6 +8,9 @@ on:
     branches:
       - main  # Trigger on pull requests targeting the main branch
 
+permissions:
+  id-token: write
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
