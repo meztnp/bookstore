@@ -23,7 +23,7 @@ spec:
         - name: POSTGRES_USER
           value: admin
         - name: POSTGRES_PASSWORD
-          value: secretpassword
+          value: admin
         ports:
         - containerPort: 5432
 ---
