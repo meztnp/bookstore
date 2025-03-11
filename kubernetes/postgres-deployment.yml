@@ -19,7 +19,7 @@ spec:
         image: postgres:15 # You can replace this with your custom image if needed
         env:
         - name: POSTGRES_DB
-          value: mydatabase
+          value: bookstore_db
         - name: POSTGRES_USER
           value: admin
         - name: POSTGRES_PASSWORD
