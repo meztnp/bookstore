@@ -52,7 +52,6 @@ jobs:
 
       # Step 2: Log in to Azure using Service Principal credentials
       - name: Azure Login
-        uses: azure/login@v1
         run: |
           az login --use-device-code
 
