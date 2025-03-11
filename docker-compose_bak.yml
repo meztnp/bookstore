@@ -6,8 +6,8 @@ services:
     container_name: bookstore-db
     restart: always
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Bansi123
       POSTGRES_DB: bookstore_db
     ports:
       - "5432:5432"
@@ -19,7 +19,7 @@ services:
     container_name: catalog-service
     restart: always
     environment:
-      DATABASE_URL: postgresql://admin:admin@postgres:5432/bookstore_db
+      DATABASE_URL: postgresql://bookstore:bookstore@20.254.69.11:5432/bookstore_db
     ports:
       - "5001:5001"
     depends_on:
@@ -30,7 +30,7 @@ services:
     container_name: cart-service
     restart: always
     environment:
-      CART_DATABASE_URL: postgresql://admin:admin@postgres:5432/bookstore_db
+      CART_DATABASE_URL: postgresql://bookstore:bookstore@20.254.69.11:5432/bookstore_db
     ports:
       - "5002:5002"
     depends_on:

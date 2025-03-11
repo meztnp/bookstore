@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 5002
  
 # Start the service
-CMD ["npm", "start"]
+CMD ["node", "index.js"]
