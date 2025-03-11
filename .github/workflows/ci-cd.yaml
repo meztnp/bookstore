@@ -53,13 +53,13 @@ jobs:
       # Step 2: Log in to Azure using Service Principal credentials
       - name: Azure Login
         uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}  # GitHub secret with Azure service principal credentials
+        run: |
+          az login --use-device-code
 
       # Step 3: Set up Kubernetes context for AKS
       - name: Set Kubernetes Context
         run: |
-          az login --use-device-code
+          az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AZURE_CLUSTER_NAME }}
 
       # Step 4: Apply Kubernetes Deployment YAML files
       - name: Apply Kubernetes Configurations
