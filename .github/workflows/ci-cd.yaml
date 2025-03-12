@@ -74,7 +74,9 @@ jobs:
           kubectl apply -f kubernetes/catalog-service-deployment.yml
           kubectl apply -f kubernetes/cart-service-deployment.yml
           kubectl apply -f kubernetes/frontend-deployment.yml
-          kubectl apply -f kubernetes/frontend-ingress.yml
+          kubectl apply -f kubernetes/nginx-configmap.yml
+          kubectl apply -f kubernetes/nginx-deployment.yml
+          kubectl apply -f kubernetes/nginx-ingress.yml
 
       # Step 5: Verify Deployment (Check Pod Status)
       - name: Verify Deployment
