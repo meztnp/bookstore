@@ -26,6 +26,7 @@ spec:
           httpGet:
             path: /api/healthz
             port: 5002
+            host: cart-service
           initialDelaySeconds: 15 
           periodSeconds: 10 
           failureThreshold: 3 
@@ -33,6 +34,7 @@ spec:
           httpGet:
             path: /api/healthz
             port: 5002
+            host: cart-service
           initialDelaySeconds: 5
           periodSeconds: 10
           failureThreshold: 2
