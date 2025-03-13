@@ -80,11 +80,33 @@ jobs:
           kubectl apply -f kubernetes/cart-service-deployment.yml
           kubectl apply -f kubernetes/frontend-deployment.yml
           kubectl apply -f kubernetes/frontend-ingress.yml
-          kubectl apply -f kubernetes/velero-secret.yml -n velero
-          kubectl apply -f kubernetes/velero-service.yml -n velero
+          # kubectl apply -f kubernetes/velero-secret.yml -n velero
+          # kubectl apply -f kubernetes/velero-service.yml -n velero
           kubectl apply -f kubernetes/catalog-service-hpa.yml 
           kubectl apply -f kubernetes/cart-service-hpa.yml
           kubectl apply -f kubernetes/frontend-service-hpa.yml
+
+          kubectl apply -f kubernetes/velero-secret-test.yml -n velero
+
+      # Step 4: Helm Install  
+      - name: Helm Install 
+        run: |
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
+          helm repo update
+
+      # Step 4: Install or Upgrade Kubernetes Tools
+      - name: Install or Upgrade Kubernetes Tools
+        run: |
+          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
+          helm upgrade --install velero vmware-tanzu/velero \
+            --namespace velero --create-namespace \
+            --set configuration.provider=azure \
+            --set configuration.backupStorageLocation.name=default \
+            --set configuration.backupStorageLocation.bucket=velero-backups \
+            --set configuration.volumeSnapshotLocation.name=default \
+            --set configuration.volumeSnapshotLocation.config.resourceGroup=bookstore-rg \
+            --set credentials.secretContents.cloud=velero-credentials
 
       # Step 5: Verify Deployment (Check Pod Status)
       - name: Verify Deployment
