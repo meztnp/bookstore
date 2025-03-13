@@ -103,9 +103,11 @@ jobs:
           --namespace velero --create-namespace \
           --set configuration.backupStorageLocation[0].name=default \
           --set configuration.backupStorageLocation[0].bucket=velero-backups \
+          --set configuration.backupStorageLocation[0].provider=azure \
           --set configuration.backupStorageLocation[0].config.resourceGroup=bookstore-rg \
           --set configuration.backupStorageLocation[0].credential.secretContents.cloud=velero-credentials \
           --set configuration.volumeSnapshotLocation[0].name=default \
+          --set configuration.volumeSnapshotLocation[0].provider=azure \
           --set configuration.volumeSnapshotLocation[0].config.resourceGroup=bookstore-rg \
           --set configuration.volumeSnapshotLocation[0].credential.secretContents.cloud=velero-credentials
 
