@@ -59,4 +59,4 @@ spec:
   resources:
     requests:
       storage: 5Gi  # Adjust size based on needs
-  storageClassName: standard
+  storageClassName: managed-csi
