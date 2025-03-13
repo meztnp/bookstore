@@ -32,7 +32,7 @@ function App() {
   // ✅ Fetch Books
   const fetchBooks = () => {
     setLoading(true);
-    fetch("http://localhost:5001/api/books")
+    fetch(`${process.env.REACT_APP_CATALOG_SERVICE_API_URL}/api/books`)
       .then((response) => response.json())
       .then((data) => {
         setBooks(data);
@@ -46,7 +46,7 @@ function App() {
 
   // ✅ Fetch Cart Items
   const fetchCart = () => {
-    fetch("http://localhost:5002/api/cart")
+    fetch(`${process.env.REACT_APP_CART_SERVICE_API_URL}/api/cart`)
       .then((response) => response.json())
       .then((data) => setCart(data))
       .catch((error) => console.error("Error fetching cart:", error));
@@ -71,8 +71,8 @@ function App() {
   const handleSave = (book) => {
     const method = book.id ? "PUT" : "POST";
     const url = book.id
-      ? `http://localhost:5001/api/books/${book.id}`
-      : "http://localhost:5001/api/books";
+      ? `${process.env.REACT_APP_CATALOG_SERVICE_API_URL}/api/books/${book.id}`
+      : `${process.env.REACT_APP_CATALOG_SERVICE_API_URL}/api/books`;
 
     fetch(url, {
       method,
@@ -91,7 +91,7 @@ function App() {
 
   // ✅ Delete Book
   const handleDelete = (id) => {
-    fetch(`http://localhost:5001/api/books/${id}`, {
+    fetch(`${process.env.REACT_APP_CATALOG_SERVICE_API_URL}/api/books/${id}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ adminPassword: "admin123" }),
@@ -102,7 +102,7 @@ function App() {
 
   // ✅ Add to Cart
   const handleAddToCart = (book) => {
-    fetch("http://localhost:5002/api/cart", {
+    fetch(`${process.env.REACT_APP_CART_SERVICE_API_URL}/api/cart`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -118,14 +118,14 @@ function App() {
 
   // ✅ Remove from Cart
   const handleRemoveFromCart = (id) => {
-    fetch(`http://localhost:5002/api/cart/${id}`, { method: "DELETE" })
+    fetch(`${process.env.REACT_APP_CART_SERVICE_API_URL}/api/cart/${id}`, { method: "DELETE" })
       .then(() => fetchCart())
       .catch((error) => console.error("Error removing from cart:", error));
   };
 
   const handleCheckout = () => {
     // API Call to Clear Cart (if using backend to store cart items)
-    fetch("http://localhost:5002/api/cart/clear", { method: "DELETE" })
+    fetch(`${process.env.REACT_APP_CART_SERVICE_API_URL}/api/cart/clear`, { method: "DELETE" })
       .then(() => {
         setCart([]); // Empty the cart state in frontend
         alert("✅ Payment successful! Thank you for your purchase."); // Success message
