@@ -100,13 +100,14 @@ jobs:
         run: |
           helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
           helm upgrade --install velero vmware-tanzu/velero \
-            --namespace velero --create-namespace \
-            --set configuration.provider=azure \
-            --set configuration.backupStorageLocation.name=default \
-            --set configuration.backupStorageLocation.bucket=velero-backups \
-            --set configuration.volumeSnapshotLocation.name=default \
-            --set configuration.volumeSnapshotLocation.config.resourceGroup=bookstore-rg \
-            --set credentials.secretContents.cloud=velero-credentials
+          --namespace velero --create-namespace \
+          --set configuration.backupStorageLocation[0].name=default \
+          --set configuration.backupStorageLocation[0].bucket=velero-backups \
+          --set configuration.backupStorageLocation[0].config.resourceGroup=bookstore-rg \
+          --set configuration.backupStorageLocation[0].credential.secretContents.cloud=velero-credentials \
+          --set configuration.volumeSnapshotLocation[0].name=default \
+          --set configuration.volumeSnapshotLocation[0].config.resourceGroup=bookstore-rg \
+          --set configuration.volumeSnapshotLocation[0].credential.secretContents.cloud=velero-credentials
 
       # Step 5: Verify Deployment (Check Pod Status)
       - name: Verify Deployment
