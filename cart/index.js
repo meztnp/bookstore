@@ -35,6 +35,11 @@ const Cart = sequelize.define("Cart", {
   quantity: { type: DataTypes.INTEGER, defaultValue: 1 },
 });
 
+// ✅ GET: Health Check
+app.get("/api/healthz", async (req, res) => {
+  res.status(200).json({message: "Server is healthy"})
+})
+
 // ✅ GET: Fetch Cart Items
 app.get("/api/cart", async (req, res) => {
   try {
