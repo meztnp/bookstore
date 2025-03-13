@@ -21,9 +21,9 @@ spec:
         - containerPort: 80
         env:
         - name: REACT_APP_CATALOG_SERVICE_API_URL
-          value: http://catalog-service:5001
+          value: http://bookstoreuniversityproject.duckdns.org/catalog-api
         - name: REACT_APP_CART_SERVICE_API_URL
-          value: http://cart-service:5002
+          value: http://bookstoreuniversityproject.duckdns.org/cart-api
 ---
 apiVersion: v1
 kind: Service

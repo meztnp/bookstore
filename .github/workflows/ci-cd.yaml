@@ -75,17 +75,30 @@ jobs:
       # Step 4: Apply Kubernetes Deployment YAML files
       - name: Apply Kubernetes Configurations
         run: |
+        
           kubectl apply -f kubernetes/postgres-deployment.yml
+
           kubectl apply -f kubernetes/catalog-service-deployment.yml
           kubectl apply -f kubernetes/cart-service-deployment.yml
           kubectl apply -f kubernetes/frontend-deployment.yml
+
+          kubectl apply -f kubernetes/catalog-service-ingress.yml
+          kubectl apply -f kubernetes/cart-service-ingress.yml
           kubectl apply -f kubernetes/frontend-ingress.yml
+
           kubectl apply -f kubernetes/catalog-service-hpa.yml 
           kubectl apply -f kubernetes/cart-service-hpa.yml
           kubectl apply -f kubernetes/frontend-service-hpa.yml
 
           kubectl apply -f kubernetes/velero-secret.yml -n velero
           kubectl apply -f kubernetes/velero-schedule.yml -n velero
+
+      # Step 4: Restart Pods to Apply New Image
+      - name: Restart Pods to Apply New Image
+        run: |
+          kubectl rollout restart deployment frontend
+          kubectl rollout restart deployment catalog-service
+          kubectl rollout restart deployment cart-service
 
       # Step 4: Helm Install  
       - name: Helm Install 

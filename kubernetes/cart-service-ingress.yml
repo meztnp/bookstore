@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cart-service-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /api/cart
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /cart-api
+            pathType: Prefix
+            backend:
+              service:
+                name: cart-service
+                port:
+                  number: 5002

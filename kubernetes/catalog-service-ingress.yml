@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: catalog-service-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /api/catalog
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /catalog-api
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-service
+                port:
+                  number: 5001
