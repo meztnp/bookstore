@@ -67,6 +67,11 @@ jobs:
         run: |
           az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AZURE_CLUSTER_NAME }}
 
+      # Step 4: Install Velero CRDs Before Deploying Velero
+      - name: Install Velero CRDs
+        run: |
+          kubectl apply -f bookstore/velero-crds/  
+
       # Step 4: Apply Kubernetes Deployment YAML files
       - name: Apply Kubernetes Configurations
         run: |
