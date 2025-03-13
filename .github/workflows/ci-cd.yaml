@@ -70,7 +70,7 @@ jobs:
       # Step 4: Install Velero CRDs Before Deploying Velero
       - name: Install Velero CRDs
         run: |
-          kubectl apply -f bookstore/velero-crds/  
+          kubectl apply -f velero-crds/  
 
       # Step 4: Apply Kubernetes Deployment YAML files
       - name: Apply Kubernetes Configurations
