@@ -24,17 +24,15 @@ spec:
           value: postgresql://admin:admin@postgres:5432/bookstore_db
         livenessProbe:
           httpGet:
-            path: /api/healthz
+            path: /api/liveness
             port: 5001
-            host: catalog-service
-          initialDelaySeconds: 15 
+          initialDelaySeconds: 30
           periodSeconds: 10 
           failureThreshold: 3 
         readinessProbe:
           httpGet:
-            path: /api/healthz
+            path: /api/health
             port: 5001
-            host: catalog-service
           initialDelaySeconds: 5
           periodSeconds: 10
           failureThreshold: 2
