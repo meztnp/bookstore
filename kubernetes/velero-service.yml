@@ -18,7 +18,7 @@ spec:
       serviceAccountName: velero
       containers:
         - name: velero
-          image: velero/velero:v1.11.0
+          image: velero/velero:v1.10.2
           args:
             - server
           volumeMounts:
