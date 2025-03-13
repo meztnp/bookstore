@@ -4,14 +4,14 @@ metadata:
   name: cart-service-ingress
   namespace: default
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /api/
+    nginx.ingress.kubernetes.io/rewrite-target: /api/$2
 spec:
   ingressClassName: nginx
   rules:
     - http:
         paths:
-          - path: /cart-api
-            pathType: Prefix
+          - path: /cart-api(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: cart-service
