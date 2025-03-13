@@ -75,8 +75,8 @@ jobs:
           kubectl apply -f kubernetes/cart-service-deployment.yml
           kubectl apply -f kubernetes/frontend-deployment.yml
           kubectl apply -f kubernetes/frontend-ingress.yml
-          kubectl apply -f kubernetes/velero-secret.yml
-          kubectl apply -f kubernetes/velero-service.yml
+          kubectl apply -f kubernetes/velero-secret.yml -n velero
+          kubectl apply -f kubernetes/velero-service.yml -n velero
           kubectl apply -f kubernetes/catalog-service-hpa.yml 
           kubectl apply -f kubernetes/cart-service-hpa.yml
           kubectl apply -f kubernetes/frontend-service-hpa.yml
