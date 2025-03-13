@@ -40,6 +40,11 @@ async function startServer() {
 }
 startServer();
 
+// ✅ GET: Health Check
+app.get("/api/healthz", async (req, res) => {
+  res.status(200).json({message: "Server is healthy"})
+})
+
 // ✅ GET: Fetch all books (Anyone can access)
 app.get("/api/books", async (req, res) => {
   try {
