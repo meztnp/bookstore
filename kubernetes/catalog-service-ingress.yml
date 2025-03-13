@@ -4,7 +4,7 @@ metadata:
   name: catalog-service-ingress
   namespace: default
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /api/catalog
+    nginx.ingress.kubernetes.io/rewrite-target: /api/
 spec:
   ingressClassName: nginx
   rules:
