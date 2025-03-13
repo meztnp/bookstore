@@ -36,9 +36,14 @@ const Cart = sequelize.define("Cart", {
 });
 
 // ✅ GET: Health Check
-app.get("/api/healthz", async (req, res) => {
-  res.status(200).json({message: "Server is healthy"})
-})
+app.get('/api/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
+// ✅ GET: Liveness
+app.get('/api/liveness', (req, res) => {
+  res.status(200).send('Alive');
+});
 
 // ✅ GET: Fetch Cart Items
 app.get("/api/cart", async (req, res) => {
