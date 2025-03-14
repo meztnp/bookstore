@@ -166,11 +166,14 @@ jobs:
           --set configuration.backupStorageLocation[0].bucket=velero-backups \
           --set configuration.backupStorageLocation[0].provider=azure \
           --set configuration.backupStorageLocation[0].config.resourceGroup=bookstore-rg \
-          --set configuration.backupStorageLocation[0].credential.secretContents.cloud=velero-credentials \
           --set configuration.volumeSnapshotLocation[0].name=default \
           --set configuration.volumeSnapshotLocation[0].provider=azure \
           --set configuration.volumeSnapshotLocation[0].config.resourceGroup=bookstore-rg \
-          --set configuration.volumeSnapshotLocation[0].credential.secretContents.cloud=velero-credentials --wait
+          --set credentials.useSecret=true \
+          --set credentials.existingSecret=velero-credentials \
+          --set plugins[0].name=velero-plugin-for-microsoft-azure \
+          --set plugins[0].image=velero/velero-plugin-for-microsoft-azure:v1.11.0 \ 
+          --wait
 
   determine-target:
     runs-on: ubuntu-latest
