@@ -324,16 +324,19 @@ jobs:
           export KUBECONFIG=~/.kube/config
           chmod 600 ~/.kube/config  # Secure kubeconfig file
 
-      - name: Wait for Pods to Start
+      - name: Wait for Pods to be Ready
         run: |
-          echo "Waiting for catalog-${{ needs.determine-target.outputs.target_color }} pods to start..."
+          echo "Waiting for catalog-${{ needs.determine-target.outputs.target_color }} pods to be fully running..."
           for i in {1..10}; do
-            POD_COUNT=$(kubectl get pods -l app=catalog,version=${{ needs.determine-target.outputs.target_color }} --no-headers | wc -l)
-            if [ "$POD_COUNT" -gt 0 ]; then
-              echo "✅ Pods found, proceeding..."
+            POD_NAME=$(kubectl get pods -l app=catalog,version=${{ needs.determine-target.outputs.target_color }} --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "NONE")
+ 
+            if [[ "$POD_NAME" != "NONE" && -n "$POD_NAME" ]]; then
+              echo "✅ Pod $POD_NAME is running, proceeding..."
+              echo "POD_NAME=$POD_NAME" >> $GITHUB_ENV
               break
             fi
-            echo "⏳ No pods found, retrying in 5 seconds..."
+ 
+            echo "⏳ Pod not ready, retrying in 5 seconds..."
             sleep 5
           done
 
