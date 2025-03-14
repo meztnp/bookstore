@@ -63,7 +63,7 @@ jobs:
     steps:
       - name: Apply Configurations Before Deploying
         run: |
-          kubectl apply -f kubernetes/frontend-configmap.yml
+          kubectl apply -f kubernetes/frontend/frontend-configmap.yml
 
       - name: Deploy Database
         run: |
@@ -75,12 +75,12 @@ jobs:
 
       - name: Apply Velero
         run: |
-          kubectl apply -f kubernetes/velero-secret.yml -n velero
-          kubectl apply -f kubernetes/velero-schedule.yml -n velero
+          kubectl apply -f kubernetes/velero/velero-secret.yml -n velero
+          kubectl apply -f kubernetes/velero/velero-schedule.yml -n velero
 
   helm-upgrade:
     runs-on: ubuntu-latest
-    needs: apply-config
+    needs: apply-predeploy
     steps:
       - name: Helm Install 
         run: |
@@ -90,7 +90,7 @@ jobs:
 
       - name: Install or Upgrade Kubernetes Tools
         run: |
-          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
+          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --wait
           helm upgrade --install velero vmware-tanzu/velero \
           --namespace velero --create-namespace \
           --set configuration.backupStorageLocation[0].name=default \
@@ -101,7 +101,7 @@ jobs:
           --set configuration.volumeSnapshotLocation[0].name=default \
           --set configuration.volumeSnapshotLocation[0].provider=azure \
           --set configuration.volumeSnapshotLocation[0].config.resourceGroup=bookstore-rg \
-          --set configuration.volumeSnapshotLocation[0].credential.secretContents.cloud=velero-credentials
+          --set configuration.volumeSnapshotLocation[0].credential.secretContents.cloud=velero-credentials --wait
 
   determine-target:
     runs-on: ubuntu-latest
@@ -127,11 +127,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: determine-target
     steps:
-      - name: Apply Database and Configuration
-        run: |
-          kubectl apply -f kubernetes/db/postgres-deployment.yaml
-          kubectl apply -f kubernetes/frontent/frontend-configmap.yaml
-
       - name: Deploy new (Blue/Green) version for all services
         run: |
           kubectl apply -f kubernetes/catalog/catalog-${{ needs.determine-target.outputs.target_color }}-deployment.yaml
@@ -144,7 +139,7 @@ jobs:
           kubectl apply -f kubernetes/cart/cart-service.yaml
           kubectl apply -f kubernetes/frontent/frontend-service.yaml
 
-      - name: Apply Kubernetes Services
+      - name: Apply Kubernetes HPA
         run: |
           kubectl apply -f kubernetes/catalog/catalog-${{ needs.determine-target.outputs.target_color }}-hpa.yaml
           kubectl apply -f kubernetes/cart/cart-${{ needs.determine-target.outputs.target_color }}-hpa.yaml
