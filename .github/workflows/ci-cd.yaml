@@ -346,8 +346,8 @@ jobs:
  
             - name: Get Blue and Green Pods
 
+      - name: Get Blue and Green Pods
         id: get-pods
-
         run: |
           echo "Fetching Blue Pods..."
           BLUE_POD=$(kubectl get pods -l app=catalog,version=blue --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "NONE")
