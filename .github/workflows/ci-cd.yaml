@@ -248,25 +248,25 @@ jobs:
         run: |
           kubectl apply -f kubernetes/catalog/catalog-${{ needs.determine-target.outputs.target_color }}-deployment.yml
           kubectl apply -f kubernetes/cart/cart-${{ needs.determine-target.outputs.target_color }}-deployment.yml
-          kubectl apply -f kubernetes/frontent/frontend-${{ needs.determine-target.outputs.target_color }}-deployment.yml
+          kubectl apply -f kubernetes/frontend/frontend-${{ needs.determine-target.outputs.target_color }}-deployment.yml
 
       - name: Apply Kubernetes Services
         run: |
           kubectl apply -f kubernetes/catalog/catalog-service.yml
           kubectl apply -f kubernetes/cart/cart-service.yml
-          kubectl apply -f kubernetes/frontent/frontend-service.yml
+          kubectl apply -f kubernetes/frontend/frontend-service.yml
 
       - name: Apply Kubernetes HPA
         run: |
           kubectl apply -f kubernetes/catalog/catalog-${{ needs.determine-target.outputs.target_color }}-hpa.yml
           kubectl apply -f kubernetes/cart/cart-${{ needs.determine-target.outputs.target_color }}-hpa.yml
-          kubectl apply -f kubernetes/frontent/frontend-${{ needs.determine-target.outputs.target_color }}-hpa.yml
+          kubectl apply -f kubernetes/frontend/frontend-${{ needs.determine-target.outputs.target_color }}-hpa.yml
 
       - name: Apply Kubernetes Ingress
         run: |
           kubectl apply -f kubernetes/catalog/catalog-ingress.yml
           kubectl apply -f kubernetes/cart/cart-ingress.yml
-          kubectl apply -f kubernetes/frontent/frontend-ingress.yml
+          kubectl apply -f kubernetes/frontend/frontend-ingress.yml
 
   restart-pods:
     runs-on: ubuntu-latest
