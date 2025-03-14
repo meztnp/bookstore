@@ -193,6 +193,9 @@ jobs:
           velero install --crds-only -o yaml > velero-crds.yaml
           kubectl apply -f velero-crds.yaml
 
+      - name: Debug credentials file
+        run: cat velero-crds.yaml
+
       - name: Apply Velero Schedule
         run: |
           kubectl apply -f kubernetes/velero/velero-schedule.yml -n velero
