@@ -185,6 +185,10 @@ jobs:
       - name: Verify Velero Installation
         run: kubectl get pods -n velero
 
+      - name: Install Velero CRDs
+        run: |
+          kubectl apply -f velero-crds/
+
       - name: Apply Velero Schedule
         run: |
           kubectl apply -f kubernetes/velero/velero-schedule.yml -n velero
