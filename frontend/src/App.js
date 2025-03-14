@@ -12,6 +12,7 @@ import {
 } from "react-bootstrap";
 import Footer from "./components/Footer";
 import BookForm from "./components/BookForm";
+import configData from "./config/config.json";
 
 function App() {
   const [books, setBooks] = useState([]);
@@ -32,7 +33,7 @@ function App() {
   // ✅ Fetch Books
   const fetchBooks = () => {
     setLoading(true);
-    fetch(`${process.env.REACT_APP_CATALOG_SERVICE_API_URL}/books`)
+    fetch(`${configData.REACT_APP_CATALOG_SERVICE_API_URL}/books`)
       .then((response) => response.json())
       .then((data) => {
         setBooks(data);
@@ -46,7 +47,7 @@ function App() {
 
   // ✅ Fetch Cart Items
   const fetchCart = () => {
-    fetch(`${process.env.REACT_APP_CART_SERVICE_API_URL}/cart`)
+    fetch(`${configData.REACT_APP_CART_SERVICE_API_URL}/cart`)
       .then((response) => response.json())
       .then((data) => setCart(data))
       .catch((error) => console.error("Error fetching cart:", error));
@@ -71,8 +72,8 @@ function App() {
   const handleSave = (book) => {
     const method = book.id ? "PUT" : "POST";
     const url = book.id
-      ? `${process.env.REACT_APP_CATALOG_SERVICE_API_URL}/books/${book.id}`
-      : `${process.env.REACT_APP_CATALOG_SERVICE_API_URL}/books`;
+      ? `${configData.REACT_APP_CATALOG_SERVICE_API_URL}/books/${book.id}`
+      : `${configData.REACT_APP_CATALOG_SERVICE_API_URL}/books`;
 
     fetch(url, {
       method,
@@ -91,7 +92,7 @@ function App() {
 
   // ✅ Delete Book
   const handleDelete = (id) => {
-    fetch(`${process.env.REACT_APP_CATALOG_SERVICE_API_URL}/books/${id}`, {
+    fetch(`${configData.REACT_APP_CATALOG_SERVICE_API_URL}/books/${id}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ adminPassword: "admin123" }),
@@ -102,7 +103,7 @@ function App() {
 
   // ✅ Add to Cart
   const handleAddToCart = (book) => {
-    fetch(`${process.env.REACT_APP_CART_SERVICE_API_URL}/cart`, {
+    fetch(`${configData.REACT_APP_CART_SERVICE_API_URL}/cart`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -118,14 +119,14 @@ function App() {
 
   // ✅ Remove from Cart
   const handleRemoveFromCart = (id) => {
-    fetch(`${process.env.REACT_APP_CART_SERVICE_API_URL}/cart/${id}`, { method: "DELETE" })
+    fetch(`${configData.REACT_APP_CART_SERVICE_API_URL}/cart/${id}`, { method: "DELETE" })
       .then(() => fetchCart())
       .catch((error) => console.error("Error removing from cart:", error));
   };
 
   const handleCheckout = () => {
     // API Call to Clear Cart (if using backend to store cart items)
-    fetch(`${process.env.REACT_APP_CART_SERVICE_API_URL}/cart/clear`, { method: "DELETE" })
+    fetch(`${configData.REACT_APP_CART_SERVICE_API_URL}/cart/clear`, { method: "DELETE" })
       .then(() => {
         setCart([]); // Empty the cart state in frontend
         alert("✅ Payment successful! Thank you for your purchase."); // Success message

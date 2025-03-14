@@ -43,9 +43,6 @@ services:
     image: teufelz/bookstore-frontend
     container_name: frontend-app
     restart: always
-    environment:
-      REACT_APP_CATALOG_SERVICE_API_URL: http://localhost:5001/api
-      REACT_APP_CART_SERVICE_API_URL: http://localhost:5002/api
     ports:
       - "3000:80"
     depends_on:

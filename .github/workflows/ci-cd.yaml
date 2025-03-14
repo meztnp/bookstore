@@ -78,6 +78,8 @@ jobs:
         
           kubectl apply -f kubernetes/postgres-deployment.yml
 
+          kubectl apply -f kubernetes/frontend-configmap.yml
+
           kubectl apply -f kubernetes/catalog-service-deployment.yml
           kubectl apply -f kubernetes/cart-service-deployment.yml
           kubectl apply -f kubernetes/frontend-deployment.yml
