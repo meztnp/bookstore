@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v2
  
       - name: Save Repository as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: repo-files
           path: .
@@ -44,7 +44,7 @@ jobs:
     needs: checkout-and-setup
     steps:
       - name: Download Repository
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: repo-files
           path: .
@@ -74,7 +74,7 @@ jobs:
     needs: checkout-and-setup
     steps:
       - name: Download Repository
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: repo-files
           path: .
@@ -161,7 +161,7 @@ jobs:
     needs: determine-target
     steps:
       - name: Download Repository
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: repo-files
           path: .
