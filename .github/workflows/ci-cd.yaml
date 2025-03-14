@@ -415,7 +415,7 @@ jobs:
 
   switch-traffic:
     runs-on: ubuntu-latest
-    needs: [determine-target, install velero, test-new]
+    needs: [determine-target, install-velero, test-new]
     if: success()
     steps:
       - name: Restore Kubernetes Context
