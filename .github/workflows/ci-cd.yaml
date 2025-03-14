@@ -46,65 +46,6 @@ jobs:
         with:
           name: kubeconfig
           path: kubeconfig.b64
-  
-  install-velero:
-    runs-on: ubuntu-latest 
-    needs: checkout-and-setup
-    steps:
-      - name: Download Repository
-        uses: actions/download-artifact@v4
-        with:
-          name: repo-files
-          path: .
-
-      - name: Restore Kubernetes Context
-        run: |
-          mkdir -p ~/.kube  # Ensure directory exists
-          echo "${{ needs.checkout-and-setup.outputs.kubeconfig }}" | base64 --decode > ~/.kube/config
-          export KUBECONFIG=~/.kube/config
-          chmod 600 ~/.kube/config  # Secure kubeconfig file
-          cat ~/.kube/config  # Debugging output to check if it's valid
- 
-      - name: Download kubeconfig as Artifact (Backup)
-        uses: actions/download-artifact@v4
-        with:
-          name: kubeconfig
-          path: .
- 
-      - name: Apply kubeconfig from Artifact (If Needed)
-        run: |
-          mkdir -p ~/.kube
-          cat kubeconfig.b64 | base64 --decode > ~/.kube/config
-          export KUBECONFIG=~/.kube/config
-          chmod 600 ~/.kube/config  # Secure kubeconfig file
-
-      - name: Install Velero CLI
-        run: |
-          curl -LO https://github.com/vmware-tanzu/velero/releases/download/v1.15.2/velero-v1.15.2-linux-amd64.tar.gz
-          tar -xzvf velero-v1.15.2-linux-amd64.tar.gz
-          sudo mv velero-v1.15.2-linux-amd64/velero /usr/local/bin/
-          chmod +x /usr/local/bin/velero
-
-      - name: Create credentials file for Velero
-        run: |
-          echo "[default]" > ./credentials-velero
-          echo "storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }}" >> ./credentials-velero
-          echo "storageAccountKey=${{ secrets.AZURE_VELERO_CLIENT_SECRET }}" >> ./credentials-velero
-          echo "resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }}" >> ./credentials-velero
-          echo "subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }}" >> ./credentials-velero
-          echo "tenantId=${{ secrets.AZURE_VELERO_TENANT_ID }}" >> ./credentials-velero
-          
-      - name: Install Velero in AKS using Velero CLI
-        run: |
-          velero install \
-            --provider azure \
-            --plugins velero/velero-plugin-for-microsoft-azure:v1.11.1 \
-            --bucket ${ { secrets.AZURE_VELERO_BLOB_CONTAINER } } \
-            --secret-file ./credentials-velero \
-            --backup-location-config resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }},storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }},subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }}
-          
-      - name: Verify Velero Installation
-        run: kubectl get pods -n velero
 
   build-and-push:
     runs-on: ubuntu-latest
@@ -184,6 +125,69 @@ jobs:
       #     kubectl apply -f kubernetes/velero/velero-secret.yml -n velero
       #     kubectl apply -f kubernetes/velero/velero-schedule.yml -n velero
       #     kubectl apply -f kubernetes/velero/restore-postgres-cronjob.yml -n velero
+
+  install-velero:
+    runs-on: ubuntu-latest 
+    needs: [checkout-and-setup, apply-predeploy]
+    steps:
+      - name: Download Repository
+        uses: actions/download-artifact@v4
+        with:
+          name: repo-files
+          path: .
+
+      - name: Restore Kubernetes Context
+        run: |
+          mkdir -p ~/.kube  # Ensure directory exists
+          echo "${{ needs.checkout-and-setup.outputs.kubeconfig }}" | base64 --decode > ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
+          cat ~/.kube/config  # Debugging output to check if it's valid
+ 
+      - name: Download kubeconfig as Artifact (Backup)
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+ 
+      - name: Apply kubeconfig from Artifact (If Needed)
+        run: |
+          mkdir -p ~/.kube
+          cat kubeconfig.b64 | base64 --decode > ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
+
+      - name: Install Velero CLI
+        run: |
+          curl -LO https://github.com/vmware-tanzu/velero/releases/download/v1.15.2/velero-v1.15.2-linux-amd64.tar.gz
+          tar -xzvf velero-v1.15.2-linux-amd64.tar.gz
+          sudo mv velero-v1.15.2-linux-amd64/velero /usr/local/bin/
+          chmod +x /usr/local/bin/velero
+
+      - name: Create credentials file for Velero
+        run: |
+          echo "[default]" > ./credentials-velero
+          echo "storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }}" >> ./credentials-velero
+          echo "storageAccountKey=${{ secrets.AZURE_VELERO_CLIENT_SECRET }}" >> ./credentials-velero
+          echo "resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }}" >> ./credentials-velero
+          echo "subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }}" >> ./credentials-velero
+          echo "tenantId=${{ secrets.AZURE_VELERO_TENANT_ID }}" >> ./credentials-velero
+          
+      - name: Install Velero in AKS using Velero CLI
+        run: |
+          velero install \
+            --provider azure \
+            --plugins velero/velero-plugin-for-microsoft-azure:v1.11.1 \
+            --bucket ${{ secrets.AZURE_VELERO_BLOB_CONTAINER }} \
+            --secret-file ./credentials-velero \
+            --backup-location-config resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }},storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }},subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }}
+          
+      - name: Verify Velero Installation
+        run: kubectl get pods -n velero
+
+      - name: Apply Velero Schedule
+        run: |
+          kubectl apply -f kubernetes/velero/velero-schedule.yml -n velero
 
   helm-upgrade:
     runs-on: ubuntu-latest
