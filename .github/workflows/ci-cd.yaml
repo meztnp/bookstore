@@ -369,11 +369,11 @@ jobs:
               echo "🚀 No Green Pod yet (first deployment), skipping health check."
             else
               echo "Testing Green Deployment..."
-              kubectl exec $GREEN_POD -- curl -s http://localhost:8080/health || exit 1
+              kubectl exec $GREEN_POD -- curl -s http://localhost:5001/api/health || exit 1
             fi
           else
             echo "Testing Blue Deployment..."
-            kubectl exec $BLUE_POD -- curl -s http://localhost:8080/health || exit 1
+            kubectl exec $BLUE_POD -- curl -s http://localhost:5001/api/health || exit 1
           fi
 
   switch-traffic:
