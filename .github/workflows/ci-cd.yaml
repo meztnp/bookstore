@@ -433,11 +433,20 @@ jobs:
           export KUBECONFIG=~/.kube/config
           chmod 600 ~/.kube/config  # Secure kubeconfig file
 
-      - name: Scale Down Old Deployment Instead of Deleting (Free up resource but still idle for emergency)
+      - name: Scale Down Old Deployment Instead of Deleting (First Deployment Safe)
         run: |
-          kubectl scale deployment catalog-${{ needs.determine-target.outputs.idle_color }} --replicas=1
-          kubectl scale deployment cart-${{ needs.determine-target.outputs.idle_color }} --replicas=1
-          kubectl scale deployment frontend-${{ needs.determine-target.outputs.idle_color }} --replicas=1
+          DEPLOYMENTS=("catalog" "cart" "frontend")
+ 
+          for DEPLOYMENT in "${DEPLOYMENTS[@]}"; do
+            GREEN_DEPLOYMENT="${DEPLOYMENT}-green"
+ 
+            if kubectl get deployment "$GREEN_DEPLOYMENT" >/dev/null 2>&1; then
+              echo "📉 Scaling down $GREEN_DEPLOYMENT..."
+              kubectl scale deployment "$GREEN_DEPLOYMENT" --replicas=1
+            else
+              echo "⚠️ $GREEN_DEPLOYMENT not found. Skipping scale down (probably first deployment)."
+            fi
+          done
 
   rollback:
     runs-on: ubuntu-latest
