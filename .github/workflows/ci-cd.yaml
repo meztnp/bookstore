@@ -270,7 +270,7 @@ jobs:
 
   restart-pods:
     runs-on: ubuntu-latest
-    needs: [build-and-push, deploy-new]
+    needs: [determine-target, build-and-push, deploy-new]
     steps:
       - name: Restore Kubernetes Context
         run: |
@@ -301,7 +301,7 @@ jobs:
 
   test-new:
     runs-on: ubuntu-latest
-    needs: restart-pods
+    needs: [determine-target, restart-pods]
     steps:
       - name: Restore Kubernetes Context
         run: |
@@ -344,7 +344,7 @@ jobs:
 
   switch-traffic:
     runs-on: ubuntu-latest
-    needs: test-new
+    needs: [determine-target, test-new]
     if: success()
     steps:
       - name: Restore Kubernetes Context
@@ -376,7 +376,7 @@ jobs:
 
   cleanup-old:
     runs-on: ubuntu-latest
-    needs: switch-traffic
+    needs: [determine-target, switch-traffic]
     steps:
       - name: Restore Kubernetes Context
         run: |
@@ -407,7 +407,7 @@ jobs:
 
   rollback:
     runs-on: ubuntu-latest
-    needs: test-new
+    needs: [determine-target, test-new]
     if: failure()
     steps:
       - name: Restore Kubernetes Context
