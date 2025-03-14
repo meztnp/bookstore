@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend
-  labels:
-    app: frontend
+  name: frontend-blue
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: frontend
+      version: blue
   template:
     metadata:
       labels:
         app: frontend
+        version: blue
     spec:
       containers:
       - name: frontend
@@ -27,16 +27,3 @@ spec:
       - name: config-volume
         configMap:
           name: frontend-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend
-spec:
-  selector:
-    app: frontend
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-  type: ClusterIP

@@ -1,12 +1,12 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: catalog-service-hpa
+  name: frontend-green-hpa
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: catalog-service
+    name: frontend-green
   minReplicas: 1
   maxReplicas: 3
   metrics:

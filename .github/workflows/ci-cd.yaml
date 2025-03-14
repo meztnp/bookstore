@@ -14,46 +14,37 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
     steps:
-      # Step 1: Checkout code from GitHub
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      # Step 2: Set up Docker
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Step 3: Log in to Docker Hub (or Azure ACR)
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 4: Install Docker Compose
       - name: Install Docker Compose
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version  # Verify installation
 
-      # Step 5: Build & Push the Stack Images using Docker Compose
       - name: Build & Push Stack Images
         run: |
           docker-compose -f docker-compose.yml build
           docker-compose -f docker-compose.yml push
 
-  deploy-to-aks:
-    needs: build-and-push
+  set-context:
     runs-on: ubuntu-latest
-
+    needs: build-and-push
     steps:
-      # Step 1: Checkout code again to get Kubernetes configuration
       - name: Checkout Repository
         uses: actions/checkout@v2
-
-      # Step 2: Log in to Azure using Service Principal credentials
+      
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -62,54 +53,41 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
-      # Step 3: Set up Kubernetes context for AKS
       - name: Set Kubernetes Context
         run: |
           az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AZURE_CLUSTER_NAME }}
 
-      # Step 4: Install Velero CRDs Before Deploying Velero
-      - name: Install Velero CRDs
+  apply-predeploy:
+    runs-on: ubuntu-latest
+    needs: set-context
+    steps:
+      - name: Apply Configurations Before Deploying
         run: |
-          kubectl apply -f velero-crds/  
-
-      # Step 4: Apply Kubernetes Deployment YAML files
-      - name: Apply Kubernetes Configurations
-        run: |
-        
-          kubectl apply -f kubernetes/postgres-deployment.yml
-
           kubectl apply -f kubernetes/frontend-configmap.yml
 
-          kubectl apply -f kubernetes/catalog-service-deployment.yml
-          kubectl apply -f kubernetes/cart-service-deployment.yml
-          kubectl apply -f kubernetes/frontend-deployment.yml
+      - name: Deploy Database
+        run: |
+          kubectl apply -f kubernetes/db/postgres-deployment.yaml
+          
+      - name: Install Velero CRDs
+        run: |
+          kubectl apply -f velero-crds/
 
-          kubectl apply -f kubernetes/catalog-service-ingress.yml
-          kubectl apply -f kubernetes/cart-service-ingress.yml
-          kubectl apply -f kubernetes/frontend-ingress.yml
-
-          kubectl apply -f kubernetes/catalog-service-hpa.yml 
-          kubectl apply -f kubernetes/cart-service-hpa.yml
-          kubectl apply -f kubernetes/frontend-service-hpa.yml
-
+      - name: Apply Velero
+        run: |
           kubectl apply -f kubernetes/velero-secret.yml -n velero
           kubectl apply -f kubernetes/velero-schedule.yml -n velero
 
-      # Step 4: Restart Pods to Apply New Image
-      - name: Restart Pods to Apply New Image
-        run: |
-          kubectl rollout restart deployment frontend
-          kubectl rollout restart deployment catalog-service
-          kubectl rollout restart deployment cart-service
-
-      # Step 4: Helm Install  
+  helm-upgrade:
+    runs-on: ubuntu-latest
+    needs: apply-config
+    steps:
       - name: Helm Install 
         run: |
           helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
           helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
           helm repo update
 
-      # Step 4: Install or Upgrade Kubernetes Tools
       - name: Install or Upgrade Kubernetes Tools
         run: |
           helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
@@ -125,7 +103,123 @@ jobs:
           --set configuration.volumeSnapshotLocation[0].config.resourceGroup=bookstore-rg \
           --set configuration.volumeSnapshotLocation[0].credential.secretContents.cloud=velero-credentials
 
-      # Step 5: Verify Deployment (Check Pod Status)
-      - name: Verify Deployment
+  determine-target:
+    runs-on: ubuntu-latest
+    needs: helm-upgrade
+    outputs:
+      target_color: ${{ steps.set-color.outputs.target_color }}
+      idle_color: ${{ steps.set-color.outputs.idle_color }}
+    steps:
+      - name: Check current active version for services
+        id: set-color
         run: |
-          kubectl get pods
+          CURRENT_COLOR=$(kubectl get service catalog-service -o jsonpath='{.spec.selector.version}')
+          if [ "$CURRENT_COLOR" == "blue" ]; then
+            echo "Deploying Green next..."
+            echo "target_color=green" >> $GITHUB_OUTPUT
+            echo "idle_color=blue" >> $GITHUB_OUTPUT
+          else
+            echo "Deploying Blue next..."
+            echo "target_color=blue" >> $GITHUB_OUTPUT
+            echo "idle_color=green" >> $GITHUB_OUTPUT
+
+  deploy-new:
+    runs-on: ubuntu-latest
+    needs: determine-target
+    steps:
+      - name: Apply Database and Configuration
+        run: |
+          kubectl apply -f kubernetes/db/postgres-deployment.yaml
+          kubectl apply -f kubernetes/frontent/frontend-configmap.yaml
+
+      - name: Deploy new (Blue/Green) version for all services
+        run: |
+          kubectl apply -f kubernetes/catalog/catalog-${{ needs.determine-target.outputs.target_color }}-deployment.yaml
+          kubectl apply -f kubernetes/cart/cart-${{ needs.determine-target.outputs.target_color }}-deployment.yaml
+          kubectl apply -f kubernetes/frontent/frontend-${{ needs.determine-target.outputs.target_color }}-deployment.yaml
+
+      - name: Apply Kubernetes Services
+        run: |
+          kubectl apply -f kubernetes/catalog/catalog-service.yaml
+          kubectl apply -f kubernetes/cart/cart-service.yaml
+          kubectl apply -f kubernetes/frontent/frontend-service.yaml
+
+      - name: Apply Kubernetes Services
+        run: |
+          kubectl apply -f kubernetes/catalog/catalog-${{ needs.determine-target.outputs.target_color }}-hpa.yaml
+          kubectl apply -f kubernetes/cart/cart-${{ needs.determine-target.outputs.target_color }}-hpa.yaml
+          kubectl apply -f kubernetes/frontent/frontend-${{ needs.determine-target.outputs.target_color }}-hpa.yaml
+
+      - name: Apply Kubernetes Ingress
+        run: |
+          kubectl apply -f kubernetes/catalog/catalog-ingress.yaml
+          kubectl apply -f kubernetes/cart/cart-ingress.yaml
+          kubectl apply -f kubernetes/frontent/frontend-ingress.yaml
+
+  restart-pods:
+    runs-on: ubuntu-latest
+    needs: deploy-new
+    steps:
+      - name: Restart Pods to Ensure Latest Image is Pulled
+        run: |
+          kubectl rollout restart deployment/catalog-${{ needs.determine-target.outputs.target_color }}
+          kubectl rollout restart deployment/cart-${{ needs.determine-target.outputs.target_color }}
+          kubectl rollout restart deployment/frontend-${{ needs.determine-target.outputs.target_color }}
+
+  test-new:
+    runs-on: ubuntu-latest
+    needs: restart-pods
+    steps:
+      - name: Get Blue and Green Pods
+        id: get-pods
+        run: |
+          BLUE_POD=$(kubectl get pods -l app=catalog,version=blue -o jsonpath='{.items[0].metadata.name}')
+          GREEN_POD=$(kubectl get pods -l app=catalog,version=green -o jsonpath='{.items[0].metadata.name}')
+          echo "BLUE_POD=$BLUE_POD" >> $GITHUB_ENV
+          echo "GREEN_POD=$GREEN_POD" >> $GITHUB_ENV
+
+      - name: Run Health Check on New Deployment
+        run: |
+          if [ "${{ needs.determine-target.outputs.target_color }}" == "green" ]; then
+            echo "Testing Green Deployment"
+            kubectl exec $GREEN_POD -- curl -s http://localhost:8080/health || exit 1
+          else
+            echo "Testing Blue Deployment"
+            kubectl exec $BLUE_POD -- curl -s http://localhost:8080/health || exit 1
+          fi
+
+  switch-traffic:
+    runs-on: ubuntu-latest
+    needs: test-new
+    if: success()
+    steps:
+      - name: Switch Traffic to New Deployment for all services
+        run: |
+          kubectl patch service catalog-service -p '{"spec":{"selector":{"version":"${{ needs.determine-target.outputs.target_color }}"}}}'
+          kubectl patch service cart-service -p '{"spec":{"selector":{"version":"${{ needs.determine-target.outputs.target_color }}"}}}'
+          kubectl patch service frontend-service -p '{"spec":{"selector":{"version":"${{ needs.determine-target.outputs.target_color }}"}}}'
+
+  cleanup-old:
+    runs-on: ubuntu-latest
+    needs: switch-traffic
+    steps:
+      - name: Scale Down Old Deployment Instead of Deleting (Free up resource but still idle for emergency)
+        run: |
+          kubectl scale deployment catalog-${{ needs.determine-target.outputs.idle_color }} --replicas=1
+          kubectl scale deployment cart-${{ needs.determine-target.outputs.idle_color }} --replicas=1
+          kubectl scale deployment frontend-${{ needs.determine-target.outputs.idle_color }} --replicas=1
+
+  rollback:
+    runs-on: ubuntu-latest
+    needs: test-new
+    if: failure()
+    steps:
+      - name: Rollback to Previous Version
+        run: |
+          echo "Rolling back to previous version: ${{ needs.determine-target.outputs.idle_color }}"
+          kubectl patch service catalog-service -p '{"spec":{"selector":{"version":"${{ needs.determine-target.outputs.idle_color }}"}}}'
+          kubectl patch service cart-service -p '{"spec":{"selector":{"version":"${{ needs.determine-target.outputs.idle_color }}"}}}'
+          kubectl patch service frontend-service -p '{"spec":{"selector":{"version":"${{ needs.determine-target.outputs.idle_color }}"}}}'
+ 
+      - name: Notify Failure
+        run: echo "Deployment failed. Rolled back to previous version."

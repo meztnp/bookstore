@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: catalog-service
-  labels:
-    app: catalog-service
+  name: catalog-blue
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: catalog-service
+      app: catalog
+      version: blue
   template:
     metadata:
       labels:
-        app: catalog-service
+        app: catalog
+        version: blue
     spec:
       containers:
-      - name: catalog-service
+      - name: catalog
         image: teufelz/bookstore-catalog:latest
         ports:
         - containerPort: 5001
@@ -36,16 +36,3 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 10
           failureThreshold: 2
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: catalog-service
-spec:
-  selector:
-    app: catalog-service
-  ports:
-    - protocol: TCP
-      port: 5001
-      targetPort: 5001
-  type: ClusterIP
