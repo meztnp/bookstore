@@ -187,7 +187,7 @@ jobs:
 
       - name: Install Velero CRDs
         run: |
-          kubectl apply -f velero-crds/
+          velero install --crds-only -o yaml | kubectl apply -f -
 
       - name: Apply Velero Schedule
         run: |
