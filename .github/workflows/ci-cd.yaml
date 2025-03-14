@@ -164,35 +164,40 @@ jobs:
           sudo mv velero-v1.15.2-linux-amd64/velero /usr/local/bin/
           chmod +x /usr/local/bin/velero
 
-      - name: Create credentials file for Velero
-        run: |
-          echo "[default]" > ./credentials-velero
-          echo "storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }}" >> ./credentials-velero
-          echo "storageAccountKey=${{ secrets.AZURE_VELERO_CLIENT_SECRET }}" >> ./credentials-velero
-          echo "resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }}" >> ./credentials-velero
-          echo "subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }}" >> ./credentials-velero
-          echo "tenantId=${{ secrets.AZURE_VELERO_TENANT_ID }}" >> ./credentials-velero
+      # - name: Create credentials file for Velero
+      #   run: |
+      #     echo "[default]" > ./credentials-velero
+      #     echo "storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }}" >> ./credentials-velero
+      #     echo "storageAccountKey=${{ secrets.AZURE_VELERO_CLIENT_SECRET }}" >> ./credentials-velero
+      #     echo "resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }}" >> ./credentials-velero
+      #     echo "subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }}" >> ./credentials-velero
+      #     echo "tenantId=${{ secrets.AZURE_VELERO_TENANT_ID }}" >> ./credentials-velero
           
-      - name: Debug credentials file
-        run: cat ./credentials-velero
+      # - name: Debug credentials file
+      #   run: cat ./credentials-velero
 
       - name: Install Velero in AKS using Velero CLI
         run: |
           velero install \
             --provider azure \
-            --plugins velero/velero-plugin-for-microsoft-azure:v1.11.1 \
-            --bucket ${{ secrets.AZURE_VELERO_BLOB_CONTAINER }} \
-            --secret-file ./credentials-velero \
-            --backup-location-config resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }},storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }},subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }}
+            --plugins velero/velero-plugin-for-azure:v1.11.1 \
+            --bucket velero-backups \
+            --secret-file kubernetes/velero/credentials-velero \
+            --backup-location-config resourceGroup=bookstore-rg,storageAccount=bookstorevelerobckpgp7
+
+          # velero install \
+          #   --provider azure \
+          #   --plugins velero/velero-plugin-for-microsoft-azure:v1.11.1 \
+          #   --bucket ${{ secrets.AZURE_VELERO_BLOB_CONTAINER }} \
+          #   --secret-file kubernetes/velero/credentials-velero \
+          #   --backup-location-config resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }},storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }},subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }}
           
       - name: Verify Velero Installation
         run: kubectl get pods -n velero
 
       - name: Install Velero CRDs
         run: |
-          velero install --crds-only -o yaml > velero-crds.yaml
-          cat velero-crds.yaml
-          kubectl apply -f velero-crds.yaml
+          kubectl apply -f velero-crds/
 
       - name: Apply Velero Schedule
         run: |

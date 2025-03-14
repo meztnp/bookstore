@@ -1,16 +1,16 @@
 apiVersion: velero.io/v1
-kind: BackupSchedule
+kind: Schedule
 metadata:
   name: daily-postgres-backup
   namespace: velero
 spec:
   schedule: "0 2 * * *"  # Runs at 2 AM UTC daily
-  backupStorageLocation: velero-backups
-  includedNamespaces:
+  template:
+    includedNamespaces:
     - default
-  includedResources:
-    - persistentvolumeclaims
-  labelSelector:
-    matchLabels:
-      app: postgres
-  ttl: 72h
+    includedResources:
+      - persistentvolumeclaims
+    labelSelector:
+      matchLabels:
+        app: postgres
+    ttl: 72h
