@@ -338,13 +338,6 @@ jobs:
             echo "⏳ Pod not ready, retrying in 5 seconds..."
             sleep 5
           done
- 
-      - name: Debug Pods Before JSONPath Query
-        run: |
-          echo "Listing all running pods with labels..."
-          kubectl get pods --show-labels
- 
-            - name: Get Blue and Green Pods
 
       - name: Get Blue and Green Pods
         id: get-pods
