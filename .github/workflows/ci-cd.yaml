@@ -324,6 +324,19 @@ jobs:
           export KUBECONFIG=~/.kube/config
           chmod 600 ~/.kube/config  # Secure kubeconfig file
 
+      - name: Wait for Pods to Start
+        run: |
+          echo "Waiting for catalog-${{ needs.determine-target.outputs.target_color }} pods to start..."
+          for i in {1..10}; do
+            POD_COUNT=$(kubectl get pods -l app=catalog,version=${{ needs.determine-target.outputs.target_color }} --no-headers | wc -l)
+            if [ "$POD_COUNT" -gt 0 ]; then
+              echo "✅ Pods found, proceeding..."
+              break
+            fi
+            echo "⏳ No pods found, retrying in 5 seconds..."
+            sleep 5
+          done
+
       - name: Get Blue and Green Pods
         id: get-pods
         run: |
