@@ -12,7 +12,6 @@ import {
 } from "react-bootstrap";
 import Footer from "./components/Footer";
 import BookForm from "./components/BookForm";
-import configData from "./config/config.json";
 
 function App() {
   const [books, setBooks] = useState([]);
@@ -24,16 +23,31 @@ function App() {
   const [adminPassword, setAdminPassword] = useState("");
   const [cart, setCart] = useState([]);
   const [showCartModal, setShowCartModal] = useState(false);
+  const [config, setConfigData] = useState(null);
 
   useEffect(() => {
-    fetchBooks();
-    fetchCart();
-  }, []); // ✅ Fetch books & cart on component mount
+    fetch('/config.json')  // Adjust path to match the location of the config file in the Nginx server
+    .then(response => response.json())
+    .then(data => {
+      setConfigData(data);  // Store it in state
+    })
+    .catch(error => {
+      console.error("Error loading config:", error);
+    });
+  }, []); // ✅ Set config data
+
+  useEffect(() => {
+    if (config) {
+      // Fetch books once the configData is available
+      fetchBooks();
+      fetchCart();
+    }
+  }, [config]); // ✅ Fetch books & cart on component mount
 
   // ✅ Fetch Books
   const fetchBooks = () => {
     setLoading(true);
-    fetch(`${configData.REACT_APP_CATALOG_SERVICE_API_URL}/books`)
+    fetch(`${config.REACT_APP_CATALOG_SERVICE_API_URL}/books`)
       .then((response) => response.json())
       .then((data) => {
         setBooks(data);
@@ -47,7 +61,7 @@ function App() {
 
   // ✅ Fetch Cart Items
   const fetchCart = () => {
-    fetch(`${configData.REACT_APP_CART_SERVICE_API_URL}/cart`)
+    fetch(`${config.REACT_APP_CART_SERVICE_API_URL}/cart`)
       .then((response) => response.json())
       .then((data) => setCart(data))
       .catch((error) => console.error("Error fetching cart:", error));
@@ -72,8 +86,8 @@ function App() {
   const handleSave = (book) => {
     const method = book.id ? "PUT" : "POST";
     const url = book.id
-      ? `${configData.REACT_APP_CATALOG_SERVICE_API_URL}/books/${book.id}`
-      : `${configData.REACT_APP_CATALOG_SERVICE_API_URL}/books`;
+      ? `${config.REACT_APP_CATALOG_SERVICE_API_URL}/books/${book.id}`
+      : `${config.REACT_APP_CATALOG_SERVICE_API_URL}/books`;
 
     fetch(url, {
       method,
@@ -92,7 +106,7 @@ function App() {
 
   // ✅ Delete Book
   const handleDelete = (id) => {
-    fetch(`${configData.REACT_APP_CATALOG_SERVICE_API_URL}/books/${id}`, {
+    fetch(`${config.REACT_APP_CATALOG_SERVICE_API_URL}/books/${id}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ adminPassword: "admin123" }),
@@ -103,7 +117,7 @@ function App() {
 
   // ✅ Add to Cart
   const handleAddToCart = (book) => {
-    fetch(`${configData.REACT_APP_CART_SERVICE_API_URL}/cart`, {
+    fetch(`${config.REACT_APP_CART_SERVICE_API_URL}/cart`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -119,14 +133,14 @@ function App() {
 
   // ✅ Remove from Cart
   const handleRemoveFromCart = (id) => {
-    fetch(`${configData.REACT_APP_CART_SERVICE_API_URL}/cart/${id}`, { method: "DELETE" })
+    fetch(`${config.REACT_APP_CART_SERVICE_API_URL}/cart/${id}`, { method: "DELETE" })
       .then(() => fetchCart())
       .catch((error) => console.error("Error removing from cart:", error));
   };
 
   const handleCheckout = () => {
     // API Call to Clear Cart (if using backend to store cart items)
-    fetch(`${configData.REACT_APP_CART_SERVICE_API_URL}/cart/clear`, { method: "DELETE" })
+    fetch(`${config.REACT_APP_CART_SERVICE_API_URL}/cart/clear`, { method: "DELETE" })
       .then(() => {
         setCart([]); // Empty the cart state in frontend
         alert("✅ Payment successful! Thank you for your purchase."); // Success message
