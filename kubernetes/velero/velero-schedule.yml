@@ -1,5 +1,5 @@
 apiVersion: velero.io/v1
-kind: Schedule
+kind: BackupSchedule
 metadata:
   name: daily-postgres-backup
   namespace: velero
