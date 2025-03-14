@@ -5,9 +5,12 @@ metadata:
   namespace: velero
 spec:
   schedule: "0 2 * * *"  # Runs at 2 AM UTC daily
-  template:
-    includedNamespaces:
-      - default
-    labelSelector:
-      matchLabels:
-        app: postgres
+  backupStorageLocation: velero-backups
+  includedNamespaces:
+    - default
+  includedResources:
+    - persistentvolumeclaims
+  labelSelector:
+    matchLabels:
+      app: postgres
+  ttl: 72h
