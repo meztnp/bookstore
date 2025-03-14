@@ -114,7 +114,7 @@ jobs:
 
       - name: Deploy Database
         run: |
-          kubectl apply -f kubernetes/db/postgres-deployment.yaml
+          kubectl apply -f kubernetes/db/postgres-deployment.yml
           
       - name: Install Velero CRDs
         run: |
