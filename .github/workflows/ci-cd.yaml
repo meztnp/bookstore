@@ -37,7 +37,15 @@ jobs:
         id: set-kubeconfig
         run: |
           az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AZURE_CLUSTER_NAME }}
-          echo "kubeconfig=$(base64 ~/.kube/config -w 0)" >> "$GITHUB_OUTPUT"
+          mkdir -p ~/.kube  # Ensure the directory exists
+          cat ~/.kube/config | base64 -w 0 > kubeconfig.b64  # Encode kubeconfig
+          echo "kubeconfig=$(cat kubeconfig.b64)" >> "$GITHUB_OUTPUT"
+ 
+      - name: Save kubeconfig as Artifact (Backup)
+        uses: actions/upload-artifact@v4
+        with:
+          name: kubeconfig
+          path: kubeconfig.b64
 
   build-and-push:
     runs-on: ubuntu-latest
@@ -81,8 +89,24 @@ jobs:
 
       - name: Restore Kubernetes Context
         run: |
+          mkdir -p ~/.kube  # Ensure directory exists
           echo "${{ needs.checkout-and-setup.outputs.kubeconfig }}" | base64 --decode > ~/.kube/config
           export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
+          cat ~/.kube/config  # Debugging output to check if it's valid
+ 
+      - name: Download kubeconfig as Artifact (Backup)
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+ 
+      - name: Apply kubeconfig from Artifact (If Needed)
+        run: |
+          mkdir -p ~/.kube
+          cat kubeconfig.b64 | base64 --decode > ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
 
       - name: Apply Configurations Before Deploying
         run: |
@@ -107,8 +131,24 @@ jobs:
     steps:
       - name: Restore Kubernetes Context
         run: |
+          mkdir -p ~/.kube  # Ensure directory exists
           echo "${{ needs.checkout-and-setup.outputs.kubeconfig }}" | base64 --decode > ~/.kube/config
           export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
+          cat ~/.kube/config  # Debugging output to check if it's valid
+ 
+      - name: Download kubeconfig as Artifact (Backup)
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+ 
+      - name: Apply kubeconfig from Artifact (If Needed)
+        run: |
+          mkdir -p ~/.kube
+          cat kubeconfig.b64 | base64 --decode > ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
     
       - name: Helm Install 
         run: |
@@ -140,8 +180,24 @@ jobs:
     steps:
       - name: Restore Kubernetes Context
         run: |
+          mkdir -p ~/.kube  # Ensure directory exists
           echo "${{ needs.checkout-and-setup.outputs.kubeconfig }}" | base64 --decode > ~/.kube/config
           export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
+          cat ~/.kube/config  # Debugging output to check if it's valid
+ 
+      - name: Download kubeconfig as Artifact (Backup)
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+ 
+      - name: Apply kubeconfig from Artifact (If Needed)
+        run: |
+          mkdir -p ~/.kube
+          cat kubeconfig.b64 | base64 --decode > ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
 
       - name: Check current active version for services
         id: set-color
@@ -168,8 +224,24 @@ jobs:
           
       - name: Restore Kubernetes Context
         run: |
+          mkdir -p ~/.kube  # Ensure directory exists
           echo "${{ needs.checkout-and-setup.outputs.kubeconfig }}" | base64 --decode > ~/.kube/config
           export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
+          cat ~/.kube/config  # Debugging output to check if it's valid
+ 
+      - name: Download kubeconfig as Artifact (Backup)
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+ 
+      - name: Apply kubeconfig from Artifact (If Needed)
+        run: |
+          mkdir -p ~/.kube
+          cat kubeconfig.b64 | base64 --decode > ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
 
       - name: Deploy new (Blue/Green) version for all services
         run: |
@@ -201,8 +273,24 @@ jobs:
     steps:
       - name: Restore Kubernetes Context
         run: |
+          mkdir -p ~/.kube  # Ensure directory exists
           echo "${{ needs.checkout-and-setup.outputs.kubeconfig }}" | base64 --decode > ~/.kube/config
           export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
+          cat ~/.kube/config  # Debugging output to check if it's valid
+ 
+      - name: Download kubeconfig as Artifact (Backup)
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+ 
+      - name: Apply kubeconfig from Artifact (If Needed)
+        run: |
+          mkdir -p ~/.kube
+          cat kubeconfig.b64 | base64 --decode > ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
 
       - name: Restart Pods to Ensure Latest Image is Pulled
         run: |
@@ -216,8 +304,24 @@ jobs:
     steps:
       - name: Restore Kubernetes Context
         run: |
+          mkdir -p ~/.kube  # Ensure directory exists
           echo "${{ needs.checkout-and-setup.outputs.kubeconfig }}" | base64 --decode > ~/.kube/config
           export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
+          cat ~/.kube/config  # Debugging output to check if it's valid
+ 
+      - name: Download kubeconfig as Artifact (Backup)
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+ 
+      - name: Apply kubeconfig from Artifact (If Needed)
+        run: |
+          mkdir -p ~/.kube
+          cat kubeconfig.b64 | base64 --decode > ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
 
       - name: Get Blue and Green Pods
         id: get-pods
@@ -244,8 +348,24 @@ jobs:
     steps:
       - name: Restore Kubernetes Context
         run: |
+          mkdir -p ~/.kube  # Ensure directory exists
           echo "${{ needs.checkout-and-setup.outputs.kubeconfig }}" | base64 --decode > ~/.kube/config
           export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
+          cat ~/.kube/config  # Debugging output to check if it's valid
+ 
+      - name: Download kubeconfig as Artifact (Backup)
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+ 
+      - name: Apply kubeconfig from Artifact (If Needed)
+        run: |
+          mkdir -p ~/.kube
+          cat kubeconfig.b64 | base64 --decode > ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
 
       - name: Switch Traffic to New Deployment for all services
         run: |
@@ -259,8 +379,24 @@ jobs:
     steps:
       - name: Restore Kubernetes Context
         run: |
+          mkdir -p ~/.kube  # Ensure directory exists
           echo "${{ needs.checkout-and-setup.outputs.kubeconfig }}" | base64 --decode > ~/.kube/config
           export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
+          cat ~/.kube/config  # Debugging output to check if it's valid
+ 
+      - name: Download kubeconfig as Artifact (Backup)
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+ 
+      - name: Apply kubeconfig from Artifact (If Needed)
+        run: |
+          mkdir -p ~/.kube
+          cat kubeconfig.b64 | base64 --decode > ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
 
       - name: Scale Down Old Deployment Instead of Deleting (Free up resource but still idle for emergency)
         run: |
@@ -275,8 +411,24 @@ jobs:
     steps:
       - name: Restore Kubernetes Context
         run: |
+          mkdir -p ~/.kube  # Ensure directory exists
           echo "${{ needs.checkout-and-setup.outputs.kubeconfig }}" | base64 --decode > ~/.kube/config
           export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
+          cat ~/.kube/config  # Debugging output to check if it's valid
+ 
+      - name: Download kubeconfig as Artifact (Backup)
+        uses: actions/download-artifact@v4
+        with:
+          name: kubeconfig
+          path: .
+ 
+      - name: Apply kubeconfig from Artifact (If Needed)
+        run: |
+          mkdir -p ~/.kube
+          cat kubeconfig.b64 | base64 --decode > ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          chmod 600 ~/.kube/config  # Secure kubeconfig file
 
       - name: Rollback to Previous Version
         run: |
