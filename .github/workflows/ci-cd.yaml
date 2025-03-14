@@ -211,6 +211,7 @@ jobs:
             echo "Deploying Blue next..."
             echo "target_color=blue" >> $GITHUB_OUTPUT
             echo "idle_color=green" >> $GITHUB_OUTPUT
+          fi
 
   deploy-new:
     runs-on: ubuntu-latest
