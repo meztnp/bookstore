@@ -120,10 +120,11 @@ jobs:
         run: |
           kubectl apply -f velero-crds/
 
-      - name: Apply Velero
+      - name: Apply Velero and Job
         run: |
           kubectl apply -f kubernetes/velero/velero-secret.yml -n velero
           kubectl apply -f kubernetes/velero/velero-schedule.yml -n velero
+          kubectl apply -f kubernetes/velero/restore-postgres-cronjob.yml -n velero
 
   helm-upgrade:
     runs-on: ubuntu-latest
