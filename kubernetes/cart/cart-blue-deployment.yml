@@ -19,6 +19,13 @@ spec:
         image: teufelz/bookstore-cart:latest
         ports:
         - containerPort: 5002
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi" 
         env:
         - name: CART_DATABASE_URL
           value: postgresql://admin:admin@postgres:5432/bookstore_db
