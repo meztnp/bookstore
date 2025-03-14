@@ -41,6 +41,7 @@ jobs:
 
   build-and-push:
     runs-on: ubuntu-latest
+    needs: checkout-and-setup
     steps:
       - name: Download Repository
         uses: actions/download-artifact@v3
