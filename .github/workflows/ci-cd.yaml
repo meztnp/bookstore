@@ -9,7 +9,7 @@ on:
       - main  # Trigger on pull requests targeting the main branch
 
 permissions:
-  id-token: writex
+  id-token: write
 
 jobs:
   checkout-and-setup:
