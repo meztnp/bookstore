@@ -173,6 +173,9 @@ jobs:
           echo "subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }}" >> ./credentials-velero
           echo "tenantId=${{ secrets.AZURE_VELERO_TENANT_ID }}" >> ./credentials-velero
           
+      - name: Debug credentials file
+        run: cat ./credentials-velero
+
       - name: Install Velero in AKS using Velero CLI
         run: |
           velero install \
@@ -187,7 +190,8 @@ jobs:
 
       - name: Install Velero CRDs
         run: |
-          velero install --crds-only -o yaml | kubectl apply -f -
+          velero install --crds-only -o yaml > velero-crds.yaml
+          kubectl apply -f velero-crds.yaml
 
       - name: Apply Velero Schedule
         run: |
