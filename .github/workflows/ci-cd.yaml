@@ -115,16 +115,6 @@ jobs:
       - name: Deploy Database
         run: |
           kubectl apply -f kubernetes/db/postgres-deployment.yml
-          
-      # - name: Install Velero CRDs
-      #   run: |
-      #     kubectl apply -f velero-crds/
-
-      # - name: Apply Velero and Job
-      #   run: |
-      #     kubectl apply -f kubernetes/velero/velero-secret.yml -n velero
-      #     kubectl apply -f kubernetes/velero/velero-schedule.yml -n velero
-      #     kubectl apply -f kubernetes/velero/restore-postgres-cronjob.yml -n velero
 
   install-velero:
     runs-on: ubuntu-latest 
@@ -164,33 +154,14 @@ jobs:
           sudo mv velero-v1.15.2-linux-amd64/velero /usr/local/bin/
           chmod +x /usr/local/bin/velero
 
-      # - name: Create credentials file for Velero
-      #   run: |
-      #     echo "[default]" > ./credentials-velero
-      #     echo "storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }}" >> ./credentials-velero
-      #     echo "storageAccountKey=${{ secrets.AZURE_VELERO_CLIENT_SECRET }}" >> ./credentials-velero
-      #     echo "resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }}" >> ./credentials-velero
-      #     echo "subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }}" >> ./credentials-velero
-      #     echo "tenantId=${{ secrets.AZURE_VELERO_TENANT_ID }}" >> ./credentials-velero
-          
-      # - name: Debug credentials file
-      #   run: cat ./credentials-velero
-
       - name: Install Velero in AKS using Velero CLI
         run: |
           velero install \
             --provider azure \
-            --plugins velero/velero-plugin-for-azure:v1.11.1 \
-            --bucket velero-backups \
+            --plugins velero/velero-plugin-for-microsoft-azure:v1.11.1 \
+            --bucket ${{ secrets.AZURE_VELERO_BLOB_CONTAINER }} \
             --secret-file kubernetes/velero/credentials-velero \
-            --backup-location-config resourceGroup=bookstore-rg,storageAccount=bookstorevelerobckpgp7
-
-          # velero install \
-          #   --provider azure \
-          #   --plugins velero/velero-plugin-for-microsoft-azure:v1.11.1 \
-          #   --bucket ${{ secrets.AZURE_VELERO_BLOB_CONTAINER }} \
-          #   --secret-file kubernetes/velero/credentials-velero \
-          #   --backup-location-config resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }},storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }},subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }}
+            --backup-location-config resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }},storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }},subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }}
           
       - name: Verify Velero Installation
         run: kubectl get pods -n velero
@@ -231,25 +202,11 @@ jobs:
       - name: Helm Install 
         run: |
           helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-          # helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
           helm repo update
 
-      # - name: Install or Upgrade Kubernetes Tools
-      #   run: |
-      #     helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --wait
-      #     helm upgrade --install velero vmware-tanzu/velero \
-      #     --namespace velero --create-namespace \
-      #     --set configuration.backupStorageLocation[0].name=default \
-      #     --set configuration.backupStorageLocation[0].bucket=velero-backups \
-      #     --set configuration.backupStorageLocation[0].provider=azure \
-      #     --set configuration.backupStorageLocation[0].config.resourceGroup=bookstore-rg \
-      #     --set configuration.volumeSnapshotLocation[0].name=default \
-      #     --set configuration.volumeSnapshotLocation[0].provider=azure \
-      #     --set configuration.volumeSnapshotLocation[0].config.resourceGroup=bookstore-rg \
-      #     --set credentials.useSecret=true \
-      #     --set credentials.existingSecret=velero-credentials \
-      #     --set plugins[0].name=velero-plugin-for-microsoft-azure \
-      #     --set plugins[0].image=velero/velero-plugin-for-microsoft-azure:v1.11.0 --wait
+      - name: Install or Upgrade Kubernetes Tools
+        run: |
+          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --wait
 
   determine-target:
     runs-on: ubuntu-latest
@@ -458,7 +415,7 @@ jobs:
 
   switch-traffic:
     runs-on: ubuntu-latest
-    needs: [determine-target, test-new]
+    needs: [determine-target, install velero, test-new]
     if: success()
     steps:
       - name: Restore Kubernetes Context
