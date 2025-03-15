@@ -492,8 +492,8 @@ jobs:
 
   rollback:
     runs-on: ubuntu-latest
-    needs: [determine-target, test-new]
-    if: failure()
+    needs: [determine-target, test-new, install-velero]
+    if: ${{ success(determine-target) && (failure('test-new') || failure('install-velero')) }}
     steps:
       - name: Restore Kubernetes Context
         run: |
