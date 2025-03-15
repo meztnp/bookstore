@@ -161,8 +161,7 @@ jobs:
             --plugins velero/velero-plugin-for-microsoft-azure:v1.11.1 \
             --bucket ${{ secrets.AZURE_VELERO_BLOB_CONTAINER }} \
             --secret-file kubernetes/velero/credentials-velero \
-            --backup-location-config resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }},storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }},subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }} \
-            --force
+            --backup-location-config resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }},storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }},subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }} 
           
       - name: Verify Velero Installation
         run: kubectl get pods -n velero
@@ -171,9 +170,11 @@ jobs:
         run: |
           kubectl apply -f velero-crds/
 
-      - name: Apply Velero Schedule
+      - name: Apply Velero Schedule and Job
         run: |
           kubectl apply -f kubernetes/velero/velero-schedule.yml -n velero
+          kubectl apply -f kubernetes/velero/restore-pvc-script.yml -n velero
+          kubectl apply -f kubernetes/velero/restore-pvc-job.yml -n velero
 
   helm-upgrade:
     runs-on: ubuntu-latest
