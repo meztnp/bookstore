@@ -9,6 +9,7 @@ spec:
     includedNamespaces:
     - default
     includedResources:
+      - persistentvolumes
       - persistentvolumeclaims
     labelSelector:
       matchLabels:

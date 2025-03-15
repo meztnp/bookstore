@@ -161,7 +161,8 @@ jobs:
             --plugins velero/velero-plugin-for-microsoft-azure:v1.11.1 \
             --bucket ${{ secrets.AZURE_VELERO_BLOB_CONTAINER }} \
             --secret-file kubernetes/velero/credentials-velero \
-            --backup-location-config resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }},storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }},subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }}
+            --backup-location-config resourceGroup=${{ secrets.AZURE_VELERO_RESOURCE_GROUP }},storageAccount=${{ secrets.AZURE_VELERO_STORAGE_ACCOUNT }},subscriptionId=${{ secrets.AZURE_VELERO_SUBSCRIPTION_ID }} \
+            --force
           
       - name: Verify Velero Installation
         run: kubectl get pods -n velero
@@ -470,20 +471,23 @@ jobs:
           export KUBECONFIG=~/.kube/config
           chmod 600 ~/.kube/config  # Secure kubeconfig file
 
-      - name: Scale Down Old Deployment Instead of Deleting (First Deployment Safe)
+      - name: Scale Down Deployment Based on Idle Color
         run: |
-          DEPLOYMENTS=("catalog" "cart" "frontend")
- 
-          for DEPLOYMENT in "${DEPLOYMENTS[@]}"; do
-            GREEN_DEPLOYMENT="${DEPLOYMENT}-green"
- 
-            if kubectl get deployment "$GREEN_DEPLOYMENT" >/dev/null 2>&1; then
-              echo "📉 Scaling down $GREEN_DEPLOYMENT..."
-              kubectl scale deployment "$GREEN_DEPLOYMENT" --replicas=1
+          IDLE_COLOR="${{ needs.determine-target.outputs.idle_color }}"
+          
+          if [[ "$IDLE_COLOR" == "green" || "$IDLE_COLOR" == "blue" ]]; then
+            DEPLOYMENT="${IDLE_COLOR}"
+            
+            if kubectl get deployment "$DEPLOYMENT" >/dev/null 2>&1; then
+              echo "📉 Scaling down $DEPLOYMENT..."
+              kubectl scale deployment "$DEPLOYMENT" --replicas=1
             else
-              echo "⚠️ $GREEN_DEPLOYMENT not found. Skipping scale down (probably first deployment)."
+              echo "⚠️ $DEPLOYMENT not found. Skipping scale down."
             fi
-          done
+          else
+            echo "⚠️ No valid idle color found. Skipping scale down."
+          fi
+
 
   rollback:
     runs-on: ubuntu-latest
