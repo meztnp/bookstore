@@ -173,8 +173,6 @@ jobs:
       - name: Apply Velero Schedule and Job
         run: |
           kubectl apply -f kubernetes/velero/velero-schedule.yml -n velero
-          kubectl apply -f kubernetes/velero/restore-pvc-script.yml -n velero
-          kubectl apply -f kubernetes/velero/restore-pvc-job.yml -n velero
 
   helm-upgrade:
     runs-on: ubuntu-latest
