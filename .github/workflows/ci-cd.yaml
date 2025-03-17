@@ -204,15 +204,22 @@ jobs:
       - name: Check current active version for services
         id: set-color
         run: |
-          CURRENT_COLOR=$(kubectl get service catalog-service -o jsonpath='{.spec.selector.version}')
-          if [ "$CURRENT_COLOR" == "blue" ]; then
-            echo "Deploying Green next..."
-            echo "target_color=green" >> $GITHUB_OUTPUT
-            echo "idle_color=blue" >> $GITHUB_OUTPUT
-          else
-            echo "Deploying Blue next..."
+          SERVICE_EXISTS=$(kubectl get service catalog-service --ignore-not-found)
+          if [ -z "$SERVICE_EXISTS" ]; then
+            echo "catalog-service not found, proceeding with initial deployment"
             echo "target_color=blue" >> $GITHUB_OUTPUT
             echo "idle_color=green" >> $GITHUB_OUTPUT
+          else
+            CURRENT_COLOR=$(kubectl get service catalog-service -o jsonpath='{.spec.selector.version}')
+            if [ "$CURRENT_COLOR" == "blue" ]; then
+              echo "Deploying Green next..."
+              echo "target_color=green" >> $GITHUB_OUTPUT
+              echo "idle_color=blue" >> $GITHUB_OUTPUT
+            else
+              echo "Deploying Blue next..."
+              echo "target_color=blue" >> $GITHUB_OUTPUT
+              echo "idle_color=green" >> $GITHUB_OUTPUT
+            fi
           fi
 
   deploy-new:
