@@ -5,6 +5,6 @@ metadata:
 data:
   config.json: |
     {
-      "REACT_APP_CATALOG_SERVICE_API_URL": "http://bookstoreuniversityproject.duckdns.org/catalog-api",
-      "REACT_APP_CART_SERVICE_API_URL": "http://bookstoreuniversityproject.duckdns.org/cart-api"
+      "REACT_APP_CATALOG_SERVICE_API_URL": "http://131.145.32.104/catalog-api",
+      "REACT_APP_CART_SERVICE_API_URL": "http://131.145.32.104/cart-api"
     }
