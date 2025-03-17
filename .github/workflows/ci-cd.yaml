@@ -260,8 +260,6 @@ jobs:
       - name: Apply Kubernetes HPA
         run: |
           kubectl apply -f kubernetes/catalog/catalog-${{ needs.determine-target.outputs.target_color }}-hpa.yml
-          kubectl apply -f kubernetes/cart/cart-${{ needs.determine-target.outputs.target_color }}-hpa.yml
-          kubectl apply -f kubernetes/frontend/frontend-${{ needs.determine-target.outputs.target_color }}-hpa.yml
 
       - name: Apply Kubernetes Ingress
         run: |
