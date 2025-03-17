@@ -403,20 +403,19 @@ jobs:
       - name: Scale Down Deployment Based on Idle Color
         run: |
           IDLE_COLOR="${{ needs.determine-target.outputs.idle_color }}"
-          
+
           if [[ "$IDLE_COLOR" == "green" || "$IDLE_COLOR" == "blue" ]]; then
-            DEPLOYMENT="${IDLE_COLOR}"
-            
-            if kubectl get deployment "$DEPLOYMENT" >/dev/null 2>&1; then
-              echo "📉 Scaling down $DEPLOYMENT..."
-              kubectl scale deployment "$DEPLOYMENT" --replicas=1
-            else
-              echo "⚠️ $DEPLOYMENT not found. Skipping scale down."
-            fi
+            for DEPLOYMENT in "catalog-${IDLE_COLOR}" "cart-${IDLE_COLOR}" "frontend-${IDLE_COLOR}"; do
+              if kubectl get deployment "$DEPLOYMENT" >/dev/null 2>&1; then
+                echo "📉 Scaling down $DEPLOYMENT..."
+                kubectl scale deployment "$DEPLOYMENT" --replicas=1
+              else
+                echo "⚠️ $DEPLOYMENT not found. Skipping scale down."
+              fi
+            done
           else
             echo "⚠️ No valid idle color found. Skipping scale down."
           fi
-
 
   rollback:
     runs-on: ubuntu-latest
