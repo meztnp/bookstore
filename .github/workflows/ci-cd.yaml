@@ -251,11 +251,12 @@ jobs:
           kubectl apply -f kubernetes/cart/cart-${{ needs.determine-target.outputs.target_color }}-deployment.yml
           kubectl apply -f kubernetes/frontend/frontend-${{ needs.determine-target.outputs.target_color }}-deployment.yml
 
-      - name: Apply Kubernetes Services
+      - name: Dry Run Apply Kubernetes Services
         run: |
-          kubectl apply -f kubernetes/catalog/catalog-service.yml
-          kubectl apply -f kubernetes/cart/cart-service.yml
-          kubectl apply -f kubernetes/frontend/frontend-service.yml
+          VERSION=${{ needs.determine-target.outputs._cotarget_colorlor }}
+          sed "s/{{VERSION}}/$VERSION/" kubernetes/catalog/catalog-service.yml | kubectl apply --dry-run -f -
+          sed "s/{{VERSION}}/$VERSION/" kubernetes/cart/cart-service.yml | kubectl apply --dry-run -f -
+          sed "s/{{VERSION}}/$VERSION/" kubernetes/frontend/frontend-service.yml | kubectl apply --dry-run -f -
 
       - name: Apply Kubernetes HPA
         run: |
@@ -377,11 +378,12 @@ jobs:
           export KUBECONFIG=~/.kube/config
           chmod 600 ~/.kube/config  # Secure kubeconfig file
 
-      - name: Switch Traffic to New Deployment for all services
+      - name: Switch Traffic and Apply Kubernetes Services
         run: |
-          kubectl patch service catalog-service -p '{"spec":{"selector":{"version":"${{ needs.determine-target.outputs.target_color }}"}}}'
-          kubectl patch service cart-service -p '{"spec":{"selector":{"version":"${{ needs.determine-target.outputs.target_color }}"}}}'
-          kubectl patch service frontend-service -p '{"spec":{"selector":{"version":"${{ needs.determine-target.outputs.target_color }}"}}}'
+          VERSION=${{ needs.determine-target.outputs.target_color }}
+          sed "s/{{VERSION}}/$VERSION/" kubernetes/catalog/catalog-service.yml | kubectl apply -f -
+          sed "s/{{VERSION}}/$VERSION/" kubernetes/cart/cart-service.yml | kubectl apply -f -
+          sed "s/{{VERSION}}/$VERSION/" kubernetes/frontend/frontend-service.yml | kubectl apply -f -
 
   cleanup-old:
     runs-on: ubuntu-latest

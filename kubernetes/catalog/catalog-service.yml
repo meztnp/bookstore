@@ -5,7 +5,7 @@ metadata:
 spec:
   selector:
     app: catalog
-    version: blue
+    version: {{VERSION}}
   ports:
     - protocol: TCP
       port: 5001
