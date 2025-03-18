@@ -359,7 +359,6 @@ jobs:
             echo "Testing Blue Deployment..."
             kubectl exec $BLUE_POD -- curl -s http://localhost:5001/api/health || exit 1
           fi
-          exit 1
 
   switch-traffic:
     runs-on: ubuntu-latest
