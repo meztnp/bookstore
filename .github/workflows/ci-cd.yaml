@@ -429,12 +429,8 @@ jobs:
   rollback:
     runs-on: ubuntu-latest
     needs: [determine-target, test-new, install-velero]
-    if: failure()
+    if: fail() && steps.test-new.conclusion == 'failure' && steps.install-velero.conclusion == 'failure' && steps.determine-target.conclusion == 'success'
     steps:
-      - run: |
-          echo "determine-target: ${{ needs.determine-target.result }}"
-          echo "test-new: ${{ needs.test-new.result }}"
-          echo "install-velero: ${{ needs.install-velero.result }}"
       - name: Download kubeconfig as Artifact
         uses: actions/download-artifact@v4
         with:
